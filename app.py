@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import openai
 import base64
 import os
@@ -7,6 +8,7 @@ import os
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para todas las rutas
 
 @app.route('/ocr-curp', methods=['POST'])
 def ocr_curp():
@@ -51,7 +53,7 @@ def ocr_curp():
             max_tokens=300
         )
         resultado = response.choices[0].message.content.strip()
-        return resultado, 200, {'Content-Type': 'application/json'}
+        return jsonify(eval(resultado))  # Asegura que el resultado sea JSON válido
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
