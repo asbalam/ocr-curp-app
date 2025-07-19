@@ -3,10 +3,11 @@ from flask_cors import CORS
 import openai
 import base64
 import os
+import json
 
 # Inicializar app Flask
 app = Flask(__name__)
-CORS(app)  # <- Esto habilita CORS para todas las rutas
+CORS(app)  # Habilita CORS para todas las rutas
 
 # Cargar clave desde variable de entorno
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -54,9 +55,20 @@ def ocr_curp():
             max_tokens=300
         )
         resultado = response.choices[0].message.content.strip()
-        return resultado, 200, {'Content-Type': 'application/json'}
+
+        # Intenta limpiar el resultado en caso de que venga con triple backticks
+        if resultado.startswith("```"):
+            resultado = resultado.strip("`").strip("json").strip()
+
+        # Intenta convertirlo a JSON real
+        parsed_json = json.loads(resultado)
+        return jsonify(parsed_json)
+
+    except json.JSONDecodeError as je:
+        return jsonify({"error": "La respuesta del modelo no es un JSON válido", "raw": resultado}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
