@@ -6,6 +6,8 @@ import os
 from pdf2image import convert_from_bytes
 from io import BytesIO
 from PIL import Image
+import re
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -19,32 +21,27 @@ def ocr_curp():
 
     file = request.files['file']
     content_type = file.content_type
-
     images_base64 = []
 
     try:
         if content_type == "application/pdf":
-            # Convertir PDF a lista de imágenes (una por página)
             pages = convert_from_bytes(file.read())
-            # Solo tomamos la primera página para OCR (opcionalmente, puedes recorrer todas)
             img_io = BytesIO()
             pages[0].save(img_io, format="JPEG")
             img_data = base64.b64encode(img_io.getvalue()).decode("utf-8")
             images_base64.append(img_data)
         else:
-            # Imagen (JPG/PNG)
             img_data = base64.b64encode(file.read()).decode("utf-8")
             images_base64.append(img_data)
     except Exception as e:
         return jsonify({"error": f"Error procesando archivo: {str(e)}"}), 500
 
-    # Construcción del mensaje
     content = [
         {
             "type": "text",
             "text": (
                 "Este es un CURP mexicano. Extrae los siguientes campos y responde "
-                "solo en JSON con este formato:\n\n"
+                "solo con un JSON plano, sin comillas triples ni texto adicional. El formato es:\n\n"
                 "{\n"
                 "  \"nombre\": \"\",\n"
                 "  \"apellido_paterno\": \"\",\n"
@@ -70,8 +67,20 @@ def ocr_curp():
             messages=[{"role": "user", "content": content}],
             max_tokens=300
         )
-        resultado = response.choices[0].message.content.strip()
-        return resultado, 200, {'Content-Type': 'application/json'}
+        raw_result = response.choices[0].message.content.strip()
+
+        # Limpieza de posibles comillas triples u otros envoltorios
+        cleaned = re.sub(r"^```json|```$", "", raw_result.strip(), flags=re.MULTILINE).strip()
+
+        parsed = json.loads(cleaned)  # Verifica que sea JSON válido
+        return jsonify(parsed)
+
+    except json.JSONDecodeError as e:
+        return jsonify({
+            "error": "Respuesta JSON inválida",
+            "detalle": str(e),
+            "raw": raw_result
+        }), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
