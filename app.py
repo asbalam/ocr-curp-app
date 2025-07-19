@@ -3,13 +3,12 @@ from flask_cors import CORS
 import openai
 import base64
 import os
-import json
+import json  # para validar JSON antes de enviarlo
 
-# Inicializar app Flask
 app = Flask(__name__)
-CORS(app)  # Habilita CORS para todas las rutas
+CORS(app)
 
-# Cargar clave desde variable de entorno
+# Clave API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route('/ocr-curp', methods=['POST'])
@@ -28,7 +27,7 @@ def ocr_curp():
                     "type": "text",
                     "text": (
                         "Este es un CURP mexicano. Extrae los siguientes campos y responde "
-                        "solo en JSON con este formato:\n\n"
+                        "solo en JSON con este formato:\n"
                         "{\n"
                         "  \"nombre\": \"\",\n"
                         "  \"apellido_paterno\": \"\",\n"
@@ -54,18 +53,15 @@ def ocr_curp():
             messages=messages,
             max_tokens=300
         )
-        resultado = response.choices[0].message.content.strip()
+        raw = response.choices[0].message.content.strip()
 
-        # Intenta limpiar el resultado en caso de que venga con triple backticks
-        if resultado.startswith("```"):
-            resultado = resultado.strip("`").strip("json").strip()
+        # Eliminar comillas markdown (```)
+        cleaned = raw.replace("```json", "").replace("```", "").strip()
 
-        # Intenta convertirlo a JSON real
-        parsed_json = json.loads(resultado)
-        return jsonify(parsed_json)
+        # Asegurar que es un JSON válido
+        data = json.loads(cleaned)
 
-    except json.JSONDecodeError as je:
-        return jsonify({"error": "La respuesta del modelo no es un JSON válido", "raw": resultado}), 500
+        return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
