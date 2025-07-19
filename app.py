@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import openai
 import base64
 import os
 
+# Inicializar app Flask
+app = Flask(__name__)
+CORS(app)  # <- Esto habilita CORS para todas las rutas
+
 # Cargar clave desde variable de entorno
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-app = Flask(__name__)
 
 @app.route('/ocr-curp', methods=['POST'])
 def ocr_curp():
@@ -16,25 +19,24 @@ def ocr_curp():
     file = request.files['file']
     image_data = base64.b64encode(file.read()).decode("utf-8")
 
-    # Instrucciones y formato esperados para la extracción
-    prompt_text = (
-        "Este es un CURP mexicano. Extrae los siguientes campos del documento y responde "
-        "solo en JSON válido con este formato exacto:\n\n"
-        "{\n"
-        "  \"nombre\": \"\",\n"
-        "  \"apellido_paterno\": \"\",\n"
-        "  \"apellido_materno\": \"\",\n"
-        "  \"fecha_nacimiento\": \"DD/MM/YYYY\",\n"
-        "  \"genero\": \"M\" o \"F\"\n"
-        "}\n\n"
-        "No incluyas ningún comentario ni explicación adicional."
-    )
-
     messages = [
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt_text},
+                {
+                    "type": "text",
+                    "text": (
+                        "Este es un CURP mexicano. Extrae los siguientes campos y responde "
+                        "solo en JSON con este formato:\n\n"
+                        "{\n"
+                        "  \"nombre\": \"\",\n"
+                        "  \"apellido_paterno\": \"\",\n"
+                        "  \"apellido_materno\": \"\",\n"
+                        "  \"fecha_nacimiento\": \"DD/MM/YYYY\",\n"
+                        "  \"genero\": \"M\" o \"F\"\n"
+                        "}"
+                    )
+                },
                 {
                     "type": "image_url",
                     "image_url": {
@@ -58,4 +60,3 @@ def ocr_curp():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
