@@ -3,3 +3,4 @@ flask-cors
 openai
 pdf2image
 Pillow
+gunicorn
