@@ -1,5 +1,5 @@
 flask
 flask-cors
 openai
-gunicorn
-python-dotenv
+pdf2image
+Pillow
