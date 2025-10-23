@@ -49,18 +49,31 @@ def ocr_curp():
     # 🧠 Instrucción que se le enviará a OpenIA para extraer los datos del CURP
     content = [
         {
-            "type": "text",
-            "text": (
-                "Este es un CURP mexicano. Extrae los siguientes campos y responde "
-                "solo con un JSON plano, sin comillas triples ni texto adicional. El formato es:\n\n"
-                "{\n"
-                "  \"nombre\": \"\",\n"
-                "  \"apellido_paterno\": \"\",\n"
-                "  \"apellido_materno\": \"\",\n"
-                "  \"fecha_nacimiento\": \"DD/MM/YYYY\",\n"
-                "  \"genero\": \"M\" o \"F\"\n"
-                "}"
-            )
+        "type": "text",
+        "text": (
+            "Este es un documento de datos personales. Extrae los campos y responde "
+            "solo con un JSON plano, sin comillas triples ni texto adicional. El formato es:\n\n"
+            "{\n"
+            "  \"nombre\": \"\",\n"
+            "  \"apellido_paterno\": \"\",\n"
+            "  \"apellido_materno\": \"\",\n"
+            "  \"fecha\": \"DD/MM/YYYY\",\n"
+            "  \"calle_y_numero\": \"\",\n"
+            "  \"colonia\": \"\",\n"
+            "  \"ciudad_municipio\": \"\",\n"
+            "  \"estado\": \"\",\n"
+            "  \"codigo_postal\": \"\",\n"
+            "  \"pais_nacimiento\": \"\",\n"
+            "  \"nacionalidad\": \"\",\n"
+            "  \"fecha_nacimiento\": \"DD/MM/YYYY\",\n"
+            "  \"rfc\": \"\",\n"
+            "  \"correo_electronico\": \"\",\n"
+            "  \"telefono\": \"\",\n"
+            "  \"ocupacion\": \"\",\n"
+            "  \"origen_recursos\": \"\",\n"
+            "  \"ha_desempenado_cargo_en_gobierno\": \"Sí\" o \"No\"\n"
+            "}"
+        )
         }
     ]
 
